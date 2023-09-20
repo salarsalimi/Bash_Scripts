@@ -1,0 +1,58 @@
+# joining Ubuntu to Windows Active Direcory
+#!/bin/bash
+
+# install ntp and configure server
+apt install -y chrony
+cat >> /etc/chrony/chrony.conf << EOF
+server x.x.x.x iburst minpoll 4 maxpoll 4
+EOF
+
+# adding nexux or other repository server to sources.list 
+rm -rf /var/cache/apt/*
+mv /etc/apt/sources.list /etc/apt/sources.list.old
+touch /etc/apt/sources.list
+cat > /etc/apt/sources.list << EOF
+deb https://x.x.x.x/repository/ubuntu-test jammy main restricted
+deb https://x.x.x.x/repository/ubuntu-test jammy-updates main restricted
+deb https://x.x.x.x/repository/ubuntu-test jammy universe
+deb https://x.x.x.x/repository/ubuntu-test jammy multiverse
+deb https://x.x.x.x/repository/ubuntu-test jammy-updates multiverse
+deb https://x.x.x.x/repository/ubuntu-test jammy-backports main restricted universe multiverse
+EOF
+
+tocuh /etc/apt/apt.conf.d/99ignoresslNexus
+cat > /etc/apt/apt.conf.d/99ignoresslNexus << EOF
+
+Acquire::https::x.x.x.x::Verify-peer "false";
+Acquire::https::x.x.x.x::Verify-host "false";
+EOF
+
+# installing required packages ( reslovconf is for permanent saving of /etc/resolv.conf file
+apt-update
+apt install -y realmd sssd sssd-tools libnss-sss libpam-sss samba-common-bin oddjob oddjob-mkhomedir packagekit sssd-ad adcli resolvconf
+
+# set dns-servers to AD dns servers
+cat > /etc/resolv.conf << EOF
+nameserver x.x.x.x
+nameserver y.y.y.y
+EOF
+
+cat > /etc/resolvconf/resolv.conf.d/head << EOF
+nameserver x.x.x.x
+nameserver y.y.y.y
+EOF
+
+
+# joining to domain
+realm discover contoso.local
+realm join CONTOSO.LOCAL -U user@CONTOSO.LOCAL
+
+# Pam update to make home directory for new users login
+pam-auth-update --enable mkhomedir --force
+
+# permit groups for lcoal login
+realm permit -g gpname@contoso.local
+
+
+# edit sodoers as reqired
+echo "Please edit sudoers file too"
