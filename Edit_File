@@ -1,0 +1,11 @@
+# This script will look in a file for the syntax match ( regex ) and add a new line after found match with what we want
+# In this example /etc/sudoers file is edited to add more groups to sudoers 
+#!/bin/bash
+
+# Defining variable with what we want to insert
+read -r -d '' change << EOF
+%Sudoer1@contoso.local  ALL=(ALL:ALL)  ALL
+%Sudoer2@contoso.local  ALL=(ALL:ALL)  ALL
+EOF
+
+sed -i '/^root.*ALL$/r /dev/stdin' /etc/sudoers <<< "$(printf '%s\n' "$change")"
