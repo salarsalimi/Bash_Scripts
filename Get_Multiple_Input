@@ -1,0 +1,29 @@
+# This script will take multiple inputs from user and each time will ask if they want to enter more values and finally prints the values.
+#!/bin/bash
+
+# Initialize an empty array to store user input values
+values=()
+
+while true; do
+    # Ask the user if they want to give more values
+    read -p "Do you want to give more values? (y/n): " choice
+
+    # Check if the user's choice is "n" (case-insensitive)
+    if [[ "$choice" =~ ^[Nn]$ ]]; then
+        break  # Exit the loop if the choice is "n"
+    elif [[ "$choice" =~ ^[Yy]$ ]]; then
+        # Ask the user for input
+        read -p "Enter a value: " value
+        values+=("$value")  # Add the value to the array
+    else
+        echo "Invalid choice. Please enter 'y' or 'n'."
+    fi
+done
+
+# Continue with the remaining of your script using the values collected
+echo "Values entered by the user:"
+for val in "${values[@]}"; do
+    echo "$val"
+done
+
+# Add the remaining of your script here
